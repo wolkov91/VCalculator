@@ -21,7 +21,7 @@
 
 int main(int argc, char *argv[])
 {
-    setlocale(LC_ALL, "rus");
+    //setlocale(LC_ALL, "rus");
 	if (argc < 2) {
         std::cout << "Is absent expression!";
         return 1;

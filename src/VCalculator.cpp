@@ -5,23 +5,24 @@
 
 using namespace VCalc;
 
-std::vector<std::shared_ptr<VToken>> VCalculator::buildPostfixNotation(const std::string &expression)
+std::vector<std::unique_ptr<VToken>> VCalculator::buildPostfixNotation(const std::string &expression)
 {
-    std::vector<std::shared_ptr<VToken>> outputVector;
-    std::vector<std::shared_ptr<VToken>> stack;
+    std::vector<std::unique_ptr<VToken>> outputVector;
+    std::vector<std::unique_ptr<VToken>> stack;
 
     m_parser.reset(expression);
-    std::shared_ptr<VToken> token(m_parser.parseNextToken());
+    std::unique_ptr<VToken> token(m_parser.parseNextToken());
     for (; token.get() != nullptr; token.reset(m_parser.parseNextToken())) {
 
         switch (token->getType()) {
         case VToken::Type::Operand:
             //Помещаем в очередь вывода
-            outputVector.push_back(token);
+            outputVector.push_back(std::move(token));
             break;
         case VToken::Type::Operator:
         {
-            std::shared_ptr<VOperatorToken> operatorToken = std::dynamic_pointer_cast<VOperatorToken>(token);
+            VOperatorToken * operatorPtr = dynamic_cast<VOperatorToken *>(token.release());
+            std::unique_ptr<VOperatorToken> operatorToken(operatorPtr);
             int operatorPriority = operatorToken->getPriority();
             while (!stack.empty()
                    && stack.back()->isOperator()
@@ -34,23 +35,23 @@ std::vector<std::shared_ptr<VToken>> VCalculator::buildPostfixNotation(const std
                        )
                    ) {
                 //Перемещаем из стэка в очередь вывода
-                outputVector.push_back(stack.back());
+                outputVector.push_back(std::move(stack.back()));
                 stack.pop_back();
             }
             //Помещаем оператор в стэк
-            stack.push_back(token);
+            stack.push_back(std::move(operatorToken));
         }
             break;
         case VToken::Type::LeftBracket:
             //Помещаем во временный стэк
-            stack.push_back(token);
+            stack.push_back(std::move(token));
             break;
         case VToken::Type::RightBracket:
         {
             while (!stack.empty()
                    && !stack.back()->isLeftBracket()) {
                 //Перемещаем из стэка в очередь вывода
-                outputVector.push_back(stack.back());
+                outputVector.push_back(std::move(stack.back()));
                 stack.pop_back();
             }
             if (stack.empty()) {
@@ -73,7 +74,7 @@ std::vector<std::shared_ptr<VToken>> VCalculator::buildPostfixNotation(const std
             throw std::runtime_error("Incorrect input: Not a closed bracket is present in the expression.");
         }
         //Перемещаем из стэка в очередь вывода
-        outputVector.push_back(stack.back());
+        outputVector.push_back(std::move(stack.back()));
         stack.pop_back();
     }
 
@@ -88,19 +89,21 @@ double VCalculator::VCalculator::calculate(const std::string &expression)
 
     std::vector<double> outputStack;
     //reversr polish notation
-    std::vector<std::shared_ptr<VToken>> rpnStack = buildPostfixNotation(expression);
+    std::vector<std::unique_ptr<VToken>> rpnStack = std::move(buildPostfixNotation(expression));
 
     std::reverse(rpnStack.begin(), rpnStack.end());
 
     while (!rpnStack.empty()) {
         switch (rpnStack.back()->getType()) {
         case VToken::Type::Operand: {
-            std::shared_ptr<VOperandToken> operand = std::dynamic_pointer_cast<VOperandToken>(rpnStack.back());
+            VOperandToken * operandPtr = dynamic_cast<VOperandToken *>(rpnStack.back().release());
+            std::unique_ptr<VOperandToken> operand(operandPtr);
             rpnStack.pop_back();
             outputStack.push_back(operand->getValue());
         } break;
         case VToken::Type::Operator: {
-            std::shared_ptr<VOperatorToken> action = std::dynamic_pointer_cast<VOperatorToken>(rpnStack.back());
+            VOperatorToken * actionPtr = dynamic_cast<VOperatorToken *>(rpnStack.back().release());
+            std::unique_ptr<VOperatorToken> action(actionPtr);
             rpnStack.pop_back();
             unsigned int argsCount = action->getArgumentsCount();
             if (outputStack.size() < argsCount) {
