@@ -31,7 +31,7 @@ public:
     VCalculator() = default;
     virtual ~VCalculator() = default;
 
-    std::vector<VToken *> buildPostfixNotation(const std::string &expression);
+    std::vector<std::shared_ptr<VToken>> buildPostfixNotation(const std::string &expression);
 
     double calculate(const std::string &expression);
 
