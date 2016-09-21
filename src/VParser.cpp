@@ -127,6 +127,9 @@ VToken *VParser::parseOperand() //TODO: Поменять на регулярки
 
     if (character == '-') {
         status = MINUS;
+        if (m_positionOffset + 1 >= m_expression.size()) {
+            throw std::runtime_error("Incorrect input: '-' in position " + std::to_string(oldPos));
+        }
     } else if (std::isdigit(character)) {
         status = BEFORE;
         ++digitCountBeforeDot;
@@ -151,7 +154,7 @@ VToken *VParser::parseOperand() //TODO: Поменять на регулярки
             if (std::isdigit(character)) {
                 ++digitCountBeforeDot;
                 if (digitCountBeforeDot > 7) {
-                    throw std::runtime_error("Incorrect input: number greater than 10 000 000 in position "
+					throw std::runtime_error("Incorrect input: absolute value of the number greater than 10 000 000 in position "
                                           + std::to_string(oldPos));
                 }
             } else if (character == '.' || character == ',') {

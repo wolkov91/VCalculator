@@ -55,7 +55,7 @@ std::vector<std::unique_ptr<VToken>> VCalculator::buildPostfixNotation(const std
                 stack.pop_back();
             }
             if (stack.empty()) {
-                throw std::runtime_error("В выражении пропущена скобка.");
+				throw std::runtime_error("Incorrect input: unpaired closing bracket is present in the expression.");
             }
             //Удаляем открывающую скобку
             stack.pop_back();
@@ -71,7 +71,7 @@ std::vector<std::unique_ptr<VToken>> VCalculator::buildPostfixNotation(const std
 
     while (!stack.empty()) {
         if (stack.back()->isLeftBracket()) {
-            throw std::runtime_error("Incorrect input: Not a closed bracket is present in the expression.");
+			throw std::runtime_error("Incorrect input: not a closed bracket is present in the expression.");
         }
         //Перемещаем из стэка в очередь вывода
         outputVector.push_back(std::move(stack.back()));
@@ -107,7 +107,7 @@ double VCalculator::VCalculator::calculate(const std::string &expression)
             rpnStack.pop_back();
             unsigned int argsCount = action->getArgumentsCount();
             if (outputStack.size() < argsCount) {
-                throw std::invalid_argument("outputStack.size() < argsCount in VCalculator::calculate(const std::string &)");   //TODO: Поправить текст исключения.
+				throw std::runtime_error("Incorrect input: not enough arguments.");
             }
             std::vector<double> args;
             for (unsigned int i = 0; i < argsCount; ++i) {
@@ -126,7 +126,8 @@ double VCalculator::VCalculator::calculate(const std::string &expression)
     double ret = outputStack.back();
     assert(outputStack.size() == 1);
 	outputStack.clear();
-    return round(ret, 2);
+    const int precision = 2;
+    return round(ret, precision);
 }
 
 double VCalculator::round(double value, int precision) const

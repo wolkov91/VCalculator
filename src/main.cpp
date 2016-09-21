@@ -22,16 +22,16 @@
 int main(int argc, char *argv[])
 {
     //setlocale(LC_ALL, "rus");
-	if (argc < 2) {
-        std::cout << "Is absent expression!";
+    if (argc < 2) {
+        std::cout << "Incorrect input: expression is absent.";
         return 1;
     }
     VCalc::VCalculator calculator;
     double ret;
     try {
-		ret = calculator.calculate(argv[1]);
+        ret = calculator.calculate(argv[1]);
         std::cout << ret << std::endl;
-    } catch (std::runtime_error e) {
+	} catch (std::runtime_error &e) {
 		std::cout << e.what() << std::endl;
         return 1;
     }
